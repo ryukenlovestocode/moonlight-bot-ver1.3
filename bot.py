@@ -1,6 +1,5 @@
-from keep_alive import keep_alive
-import os
 import discord
+import os
 from discord.ext import commands
 
 # ---------- INTENTS ----------
