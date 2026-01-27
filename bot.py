@@ -56,5 +56,4 @@ async def setup_hook():
     print("✅ Cogs loaded")
 
 # ---------- RUN ----------
-keep_alive()
 bot.run(os.getenv("DISCORD_TOKEN"))
