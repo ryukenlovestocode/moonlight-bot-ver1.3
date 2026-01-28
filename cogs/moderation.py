@@ -197,34 +197,50 @@ class Moderation(commands.Cog):
     #---------------- STATS -----------------
     @commands.command(name="stats", aliases=["statistics"])
     @commands.has_permissions(manage_messages=True)
-    async def stats(self, ctx):
-        guild_id = ctx.guild.id
-        now = datetime.utcnow()
-        cutoff = now - STATS_WINDOW
+    async def stats(self, ctx, member: discord.Member = None):
+     guild_id = ctx.guild.id
+     now = datetime.utcnow()
+     cutoff = now - STATS_WINDOW
 
-        data = message_stats.get(guild_id, [])
+     data = message_stats.get(guild_id, [])
 
-        if not data:
-            return await ctx.send("❌ No message data recorded yet.")
+     if not data:
+        return await ctx.send("❌ No message data recorded yet.")
 
-        # Count messages per user
-        counts = defaultdict(int)
-        for user_id, timestamp in data:
-            if timestamp > cutoff:
-                counts[user_id] += 1
+     # Count messages per user + per hour
+     counts = defaultdict(int)
+     hourly_counts = defaultdict(lambda: defaultdict(int))
 
-        total_messages = sum(counts.values())
+     for user_id, timestamp in data:
+        if timestamp > cutoff:
+            counts[user_id] += 1
+            hour = timestamp.hour
+            hourly_counts[user_id][hour] += 1
 
-        # Sort top users
-        top_users = sorted(
-            counts.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )[:10]
+     # ---------------- USER STATS ----------------
+     if member:
+        total_messages = counts.get(member.id, 0)
+
+        # Find most active hour
+        user_hours = hourly_counts.get(member.id, {})
+
+        if user_hours:
+            peak_hour = max(user_hours, key=user_hours.get)
+            peak_count = user_hours[peak_hour]
+            peak_time = f"{peak_hour:02d}:00 – {peak_hour + 1:02d}:00 UTC"
+        else:
+            peak_time = "No data"
+            peak_count = 0
 
         embed = discord.Embed(
-            title="📊 Server Message Statistics (24h)",
-            color=discord.Color.blurple()
+            title="👤 User Message Statistics (24h)",
+            color=discord.Color.purple()
+        )
+
+        embed.add_field(
+            name="👤 User",
+            value=member.mention,
+            inline=False
         )
 
         embed.add_field(
@@ -233,21 +249,52 @@ class Moderation(commands.Cog):
             inline=False
         )
 
-        leaderboard = ""
-        for i, (user_id, count) in enumerate(top_users, start=1):
-            member = ctx.guild.get_member(user_id)
-            name = member.display_name if member else f"User {user_id}"
-            leaderboard += f"**{i}. {name}** — {count} messages\n"
-
         embed.add_field(
-            name="👥 Top Active Members",
-            value=leaderboard if leaderboard else "No data",
+            name="⏰ Most Active Time",
+            value=f"**{peak_time}**\n({peak_count} messages)",
             inline=False
         )
 
-        embed.set_footer(text="MoonLight Moderation • Last 24 hours")
+        embed.set_thumbnail(url=member.display_avatar.url)
+        embed.set_footer(text="MoonLight Moderation • Last 24 hours (UTC)")
 
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
+
+    # ---------------- SERVER STATS (unchanged) ----------------
+     total_messages = sum(counts.values())
+
+     top_users = sorted(
+        counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+     )[:10]
+
+     embed = discord.Embed(
+        title="📊 Server Message Statistics (24h)",
+        color=discord.Color.blurple()
+     )
+
+     embed.add_field(
+        name="💬 Total Messages",
+        value=f"**{total_messages}** messages",
+        inline=False
+     )
+
+     leaderboard = ""
+     for i, (user_id, count) in enumerate(top_users, start=1):
+        member_obj = ctx.guild.get_member(user_id)
+        name = member_obj.display_name if member_obj else f"User {user_id}"
+        leaderboard += f"**{i}. {name}** — {count} messages\n"
+
+     embed.add_field(
+        name="👥 Top Active Members",
+        value=leaderboard if leaderboard else "No data",
+        inline=False
+     )
+
+     embed.set_footer(text="MoonLight Moderation • Last 24 hours (UTC)")
+
+     await ctx.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(Moderation(bot))
