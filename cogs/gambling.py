@@ -40,6 +40,8 @@ def hand_value(hand):
 
     return value
 
+WHEEL_SPIN_GIF = "https://media.tenor.com/6K7Ew6N6cEAAAAAC/spinning-wheel.gif"
+
 
 class Gambling(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -48,6 +50,89 @@ class Gambling(commands.Cog):
     @commands.command()
     async def ping(self, ctx: commands.Context):
         await ctx.send("🏓 Pong! Bot is alive.")
+
+    @commands.command(aliases=["spin"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def sw(self, ctx, amount: int):
+     user_id = ctx.author.id
+     balance = get_balance(user_id)
+
+     MAX_BET = 100_000
+
+    # ---------- VALIDATION ----------
+     if amount <= 0:
+        return await ctx.send("❌ Enter a positive amount.")
+     if amount > MAX_BET:
+        return await ctx.send("❌ Max bet is **100,000**.")
+     if amount > balance:
+        return await ctx.send("❌ You don’t have enough balance.")
+
+    # ---------- SPINNING EMBED ----------
+     spinning_embed = discord.Embed(
+        title="🎡 Spinning the Wheel...",
+        description="The wheel spins under the Moonlight 🌙",
+        color=discord.Color.blurple()
+     )
+     spinning_embed.set_image(
+        url="https://media.tenor.com/6K7Ew6N6cEAAAAAC/spinning-wheel.gif"
+    )
+
+     msg = await ctx.send(embed=spinning_embed)
+     await asyncio.sleep(2)
+
+    # ---------- OUTCOMES ----------
+     outcomes = [
+        ("💀 Total disaster!", -4),
+        ("😬 Bad spin", -2),
+        ("😐 Weak spin", -1),
+        ("🍀 Lucky spin!", 1),
+        ("🔥 Great spin!", 2),
+        ("💎 JACKPOT!", 4),
+    ]
+
+     text, multiplier = random.choice(outcomes)
+
+     if multiplier > 0:
+        change = amount * multiplier
+        new_balance = balance + change
+        result_text = f"🎉 **+{change} {CURRENCY}**"
+        color = discord.Color.green()
+     else:
+        change = amount * abs(multiplier)
+        new_balance = balance - change
+        result_text = f"💸 **-{change} {CURRENCY}**"
+        color = discord.Color.red()
+
+     set_balance(user_id, new_balance)
+
+    # ---------- RESULT EMBED ----------
+     result_embed = discord.Embed(
+        title="🎡 Spin Result",
+        description=text,
+        color=color
+    )
+
+     result_embed.add_field(
+        name="🎯 Bet",
+        value=f"`{amount} {CURRENCY}`",
+        inline=True
+    )
+
+     result_embed.add_field(
+        name="📊 Outcome",
+        value=result_text,
+        inline=True
+    )
+
+     result_embed.add_field(
+        name="💰 New Balance",
+        value=f"`{new_balance} {CURRENCY}`",
+        inline=False
+     )
+
+     result_embed.set_footer(text="Moonlight Casino 🌙 Spin responsibly")
+
+     await msg.edit(embed=result_embed)
 
     @commands.command()
     @commands.cooldown(1, 10, BucketType.user)
