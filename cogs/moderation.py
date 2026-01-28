@@ -196,16 +196,7 @@ class Moderation(commands.Cog):
         await self.bot.process_commands(message)
     #---------------- STATS -----------------
     @commands.command(name="stats", aliases=["statistics"])
-    async def stats(self, ctx, member: discord.Member = None):
-    # 🔒 Role hierarchy check
-     bot_member = ctx.guild.me  # Luna
-     user_top_role = ctx.author.top_role
-     bot_top_role = bot_member.top_role
-
-     if user_top_role <= bot_top_role:
-        return await ctx.send("❌ **You're not my owner dumbo!**")
-
-    # ---- rest of your stats code below ----
+    @commands.has_permissions(manage_messages=True)
     async def stats(self, ctx, member: discord.Member = None):
      guild_id = ctx.guild.id
      now = datetime.utcnow()
