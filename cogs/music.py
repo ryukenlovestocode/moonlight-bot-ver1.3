@@ -44,27 +44,39 @@ class Music(commands.Cog):
 
     @commands.command()
     async def play(self, ctx, *, query: str):
-        if ctx.author.voice is None:
-            return await ctx.send("❌ Join a voice channel first.")
+     if ctx.author.voice is None:
+        return await ctx.send("❌ Join a voice channel first.")
 
-        if ctx.voice_client is None:
-            await ctx.author.voice.channel.connect()
+     if ctx.voice_client is None:
+        await ctx.author.voice.channel.connect()
 
-        vc = ctx.voice_client
+     vc = ctx.voice_client
 
-        with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
-            info = ydl.extract_info(query, download=False)
-            url = info["url"]
-            title = info.get("title", "Unknown")
+     YDL_OPTIONS = {
+        "format": "bestaudio",
+        "quiet": True,
+        "noplaylist": True,
+        "default_search": "ytsearch"
+      }
+     FFMPEG_OPTIONS = {
+        "options": "-vn"
+     }
 
-        source = await discord.FFmpegOpusAudio.from_probe(
-            url, **FFMPEG_OPTIONS
-        )
+     with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
+        info = ydl.extract_info(query, download=False)
 
-        vc.stop()
-        vc.play(source)
+        if "entries" in info:
+            info = info["entries"][0]
 
-        await ctx.send(f"🎶 **Now Playing:** {title}")
+        url = info["url"]
+        title = info.get("title", "Unknown")
+
+     source = discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS)
+
+     vc.stop()
+     vc.play(source)
+
+     await ctx.send(f"🎶 **Now Playing:** {title}")
 
     @commands.command()
     async def pause(self, ctx):
