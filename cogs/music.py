@@ -20,10 +20,20 @@ class Music(commands.Cog):
 
     @commands.command()
     async def join(self, ctx):
-        if ctx.author.voice is None:
-            return await ctx.send("❌ You’re not in a voice channel.")
+     if ctx.author.voice is None:
+        return await ctx.send("❌ You need to be in a voice channel first.")
 
-        await ctx.author.voice.channel.connect()
+     channel = ctx.author.voice.channel
+
+     if ctx.voice_client is not None:
+        return await ctx.send("🎧 I’m already in a voice channel.")
+
+     try:
+        await channel.connect()
+        await ctx.send(f"🎧 Joined **{channel.name}**")
+     except Exception as e:
+        await ctx.send("❌ Failed to join voice channel.")
+        print(e)
 
     @commands.command()
     async def leave(self, ctx):

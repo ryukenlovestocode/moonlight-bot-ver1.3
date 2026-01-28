@@ -3,3 +3,4 @@ flask
 discord.py
 flask
 yt-dlp
+PyNaCl
