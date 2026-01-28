@@ -1,6 +1,10 @@
 import discord
 from discord.ext import commands
 from datetime import timedelta
+from datetime import datetime
+
+# channel_id -> message data
+sniped_messages = {}
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
@@ -129,6 +133,43 @@ class Moderation(commands.Cog):
         await ctx.send(
             f"⚠️ **{member.mention}** has been warned.\n📝 Reason: {reason}"
         )
+
+    #----------------SNIPE------------------
+    @commands.Cog.listener()
+    async def on_message_delete(self, message):
+        if message.author.bot:
+            return
+
+        sniped_messages[message.channel.id] = {
+            "author": message.author,
+            "content": message.content if message.content else "*[No text]*",
+            "time": datetime.utcnow(),
+            "avatar": message.author.display_avatar.url
+        }
+
+    @commands.command(name="s", aliases=["snipe"])
+    @commands.has_permissions(manage_messages=True)
+    async def snipe(self, ctx):
+        data = sniped_messages.get(ctx.channel.id)
+
+        if not data:
+            return await ctx.send("❌ Nothing to snipe here.")
+
+        embed = discord.Embed(
+            title="🎯 Sniped Message",
+            description=data["content"],
+            color=discord.Color.dark_purple(),
+            timestamp=data["time"]
+        )
+
+        embed.set_author(
+            name=str(data["author"]),
+            icon_url=data["avatar"]
+        )
+
+        embed.set_footer(text="MoonLight Moderation • Deleted message")
+
+        await ctx.send(embed=embed)
 
 
 async def setup(bot):
