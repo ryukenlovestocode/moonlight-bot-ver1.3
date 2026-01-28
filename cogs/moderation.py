@@ -2,6 +2,11 @@ import discord
 from discord.ext import commands
 from datetime import timedelta
 from datetime import datetime
+from collections import defaultdict
+
+message_stats = defaultdict(list)
+
+STATS_WINDOW = timedelta(hours=24)
 
 # channel_id -> message data
 sniped_messages = {}
@@ -170,7 +175,79 @@ class Moderation(commands.Cog):
         embed.set_footer(text="MoonLight Moderation • Deleted message")
 
         await ctx.send(embed=embed)
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author.bot or not message.guild:
+            return
 
+        now = datetime.utcnow()
+        guild_id = message.guild.id
+
+        # Add message
+        message_stats[guild_id].append((message.author.id, now))
+
+        # Cleanup old messages
+        cutoff = now - STATS_WINDOW
+        message_stats[guild_id] = [
+            (uid, ts) for uid, ts in message_stats[guild_id]
+            if ts > cutoff
+        ]
+
+        await self.bot.process_commands(message)
+    #---------------- STATS -----------------
+    @commands.command(name="stats", aliases=["statistics"])
+    @commands.has_permissions(manage_messages=True)
+    async def stats(self, ctx):
+        guild_id = ctx.guild.id
+        now = datetime.utcnow()
+        cutoff = now - STATS_WINDOW
+
+        data = message_stats.get(guild_id, [])
+
+        if not data:
+            return await ctx.send("❌ No message data recorded yet.")
+
+        # Count messages per user
+        counts = defaultdict(int)
+        for user_id, timestamp in data:
+            if timestamp > cutoff:
+                counts[user_id] += 1
+
+        total_messages = sum(counts.values())
+
+        # Sort top users
+        top_users = sorted(
+            counts.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:10]
+
+        embed = discord.Embed(
+            title="📊 Server Message Statistics (24h)",
+            color=discord.Color.blurple()
+        )
+
+        embed.add_field(
+            name="💬 Total Messages",
+            value=f"**{total_messages}** messages",
+            inline=False
+        )
+
+        leaderboard = ""
+        for i, (user_id, count) in enumerate(top_users, start=1):
+            member = ctx.guild.get_member(user_id)
+            name = member.display_name if member else f"User {user_id}"
+            leaderboard += f"**{i}. {name}** — {count} messages\n"
+
+        embed.add_field(
+            name="👥 Top Active Members",
+            value=leaderboard if leaderboard else "No data",
+            inline=False
+        )
+
+        embed.set_footer(text="MoonLight Moderation • Last 24 hours")
+
+        await ctx.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(Moderation(bot))
