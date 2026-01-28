@@ -51,6 +51,63 @@ class Gambling(commands.Cog):
     async def ping(self, ctx: commands.Context):
         await ctx.send("🏓 Pong! Bot is alive.")
 
+    @commands.command(name="pay", aliases=["transfer", "give"])
+    async def pay(self, ctx, member: discord.Member, amount: int):
+     sender = ctx.author
+
+     # ❌ Invalid cases
+     if member.bot:
+        return await ctx.send("🤖 You can’t send MoonShards to bots.")
+
+     if member.id == sender.id:
+        return await ctx.send("❌ You can’t pay yourself.")
+
+     if amount <= 0:
+         return await ctx.send("❌ Amount must be greater than 0.")
+
+     sender_balance = get_balance(sender.id)
+
+     if sender_balance < amount:
+        return await ctx.send(
+            f"❌ You don’t have enough MoonShards.\n"
+            f"💰 Your balance: **{sender_balance}** 🌙"
+        )
+
+      # ✅ Transfer
+     receiver_balance = get_balance(member.id)
+
+     set_balance(sender.id, sender_balance - amount)
+     set_balance(member.id, receiver_balance + amount)
+
+     # ✅ Embed
+     embed = discord.Embed(
+        title="🌙 MoonShards Transfer",
+        color=discord.Color.blurple()
+     )
+
+     embed.add_field(
+        name="📤 Sender",
+        value=sender.mention,
+        inline=True
+     )
+
+     embed.add_field(
+        name="📥 Receiver",
+        value=member.mention,
+        inline=True
+     )
+
+     embed.add_field(
+        name="💸 Amount",
+        value=f"**{amount}** MoonShards 🌙",
+        inline=False
+     )
+
+     embed.set_thumbnail(url=sender.display_avatar.url)
+     embed.set_footer(text="MoonLight Economy • Secure Transfer")
+
+     await ctx.send(embed=embed)
+
     @commands.command(aliases=["spin"])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def sw(self, ctx, amount: int):
