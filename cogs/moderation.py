@@ -52,22 +52,29 @@ class Moderation(commands.Cog):
 
         # ---------------- BOT MESSAGES ----------------
         if arg.lower().startswith("contains bots"):
-            deleted = []
+        # 🔥 DELETE THE COMMAND MESSAGE ITSELF
+         await ctx.message.delete()
 
-            async for message in ctx.channel.history(limit=MAX_SCAN):
-                if message.author.bot:
-                    deleted.append(message)
-                    if len(deleted) >= MAX_DELETE:
-                        break
+         deleted = []
 
-            if not deleted:
-                return await ctx.send("🤖 No recent bot messages found.", delete_after=3)
+         async for message in ctx.channel.history(limit=MAX_SCAN):
+          if message.author.bot:
+            deleted.append(message)
+            if len(deleted) >= MAX_DELETE:
+                break
 
-            await ctx.channel.delete_messages(deleted)
-            return await ctx.send(
-                f"🤖 Deleted **{len(deleted)}** bot messages.",
-                delete_after=3
-            )
+         if not deleted:
+          return await ctx.send(
+            "🤖 No recent bot messages found.",
+            delete_after=3
+        )
+
+         await ctx.channel.delete_messages(deleted)
+
+         return await ctx.send(
+        f"🤖 Deleted **{len(deleted)}** bot messages.",
+        delete_after=3
+    )
 
         # ---------------- KEYWORD ----------------
         if arg.lower().startswith("contains "):
