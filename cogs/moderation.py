@@ -177,31 +177,33 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.bot or not message.guild:
-            return
+     if message.author.bot or not message.guild:
+        return
 
-        now = datetime.utcnow()
-        guild_id = message.guild.id
+     now = datetime.utcnow()
+     guild_id = message.guild.id
 
-        # Add message
-        message_stats[guild_id].append((message.author.id, now))
+     # Add message
+     message_stats[guild_id].append((message.author.id, now))
 
-        # Cleanup old messages
-        cutoff = now - STATS_WINDOW
-        message_stats[guild_id] = [
-            (uid, ts) for uid, ts in message_stats[guild_id]
-            if ts > cutoff
-        ]
+     # Cleanup old messages
+     cutoff = now - STATS_WINDOW
+     message_stats[guild_id] = [
+        (uid, ts) for uid, ts in message_stats[guild_id]
+        if ts > cutoff
+     ]
 
-        await self.bot.process_commands(message)
-    #---------------- STATS -----------------
+     await self.bot.process_commands(message)
+
+
+# ---------------- STATS -----------------
     @commands.command(name="stats", aliases=["statistics"])
     @commands.has_permissions(manage_messages=True)
     async def stats(self, ctx, member: discord.Member = None):
      guild_id = ctx.guild.id
      now = datetime.utcnow()
      cutoff = now - STATS_WINDOW
-
+ 
      data = message_stats.get(guild_id, [])
 
      if not data:
@@ -214,14 +216,11 @@ class Moderation(commands.Cog):
      for user_id, timestamp in data:
         if timestamp > cutoff:
             counts[user_id] += 1
-            hour = timestamp.hour
-            hourly_counts[user_id][hour] += 1
+            hourly_counts[user_id][timestamp.hour] += 1
 
-     # ---------------- USER STATS ----------------
+    # ---------------- USER STATS ----------------
      if member:
         total_messages = counts.get(member.id, 0)
-
-        # Find most active hour
         user_hours = hourly_counts.get(member.id, {})
 
         if user_hours:
@@ -260,7 +259,7 @@ class Moderation(commands.Cog):
 
         return await ctx.send(embed=embed)
 
-    # ---------------- SERVER STATS (unchanged) ----------------
+    # ---------------- SERVER STATS ----------------
      total_messages = sum(counts.values())
 
      top_users = sorted(
@@ -288,7 +287,7 @@ class Moderation(commands.Cog):
 
      embed.add_field(
         name="👥 Top Active Members",
-        value=leaderboard if leaderboard else "No data",
+        value=leaderboard or "No data",
         inline=False
      )
 
