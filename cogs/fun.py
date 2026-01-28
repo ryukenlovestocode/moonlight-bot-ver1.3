@@ -330,7 +330,7 @@ class Fun(commands.Cog):
 
      # Ignore commands like $luna
      if content.startswith("$"):
-         await self.bot.process_commands(message)
+         
          return
 
      if "luna" in content:
@@ -392,7 +392,7 @@ class Fun(commands.Cog):
              await message.channel.send(response)
 
      # ⚠️ REQUIRED so commands still work
-     await self.bot.process_commands(message)
+     
     
     
 async def setup(bot):

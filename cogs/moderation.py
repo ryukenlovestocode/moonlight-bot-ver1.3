@@ -152,11 +152,11 @@ class Moderation(commands.Cog):
         pass  # user has DMs closed
     #----------------SNIPE------------------
     @commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_message_delete(self, message):
-        if message.author.bot:
-            return
+     self.last_deleted = message
 
-        sniped_messages[message.channel.id] = {
+     sniped_messages[message.channel.id] = {
             "author": message.author,
             "content": message.content if message.content else "*[No text]*",
             "time": datetime.utcnow(),
@@ -187,9 +187,8 @@ class Moderation(commands.Cog):
 
         await ctx.send(embed=embed)
     @commands.Cog.listener()
-    async def on_message(self, message):
-     if message.author.bot or not message.guild:
-        return
+    async def on_message_delete(self, message):
+     self.last_deleted = message
 
      now = datetime.utcnow()
      guild_id = message.guild.id
