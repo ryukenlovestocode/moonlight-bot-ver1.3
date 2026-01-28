@@ -49,7 +49,7 @@ class Gambling(commands.Cog):
 
     @commands.command()
     async def ping(self, ctx: commands.Context):
-        await ctx.send("🏓 Pong! Bot is alive.")
+        await ctx.send("🏓 Pong! I'm alive.")
 
     @commands.command(name="pay", aliases=["transfer", "give"])
     async def pay(self, ctx, member: discord.Member, amount: int):
