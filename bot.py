@@ -63,6 +63,7 @@ async def setup_hook():
     await bot.load_extension("cogs.help")
     await bot.load_extension("cogs.music")
     await bot.load_extension("cogs.fun")
+    await bot.load_extension("cogs.automation")
     print("✅ Cogs loaded")
 
 # ---------- RUN ----------
