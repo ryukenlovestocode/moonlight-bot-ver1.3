@@ -8,12 +8,11 @@ from typing import Final
 
 from moonlight.database import (
     get_balance,
-    set_balance,
+    update_balance,       
     get_last_daily,
     set_daily as db_set_daily,
     get_top_balances,
 )
-
 MAX_BET = 250_000
 
 blackjack_games = {}
@@ -54,60 +53,62 @@ class Gambling(commands.Cog):
     @commands.command(name="pay", aliases=["transfer", "give"])
     async def pay(self, ctx, member: discord.Member, amount: int):
      sender = ctx.author
-
+ 
      # ❌ Invalid cases
      if member.bot:
-        return await ctx.send("🤖 You can’t send MoonShards to bots.")
-
+         return await ctx.send("🤖 You can’t send MoonShards to bots.")
+ 
      if member.id == sender.id:
-        return await ctx.send("❌ You can’t pay yourself.")
-
+         return await ctx.send("❌ You can’t pay yourself.")
+ 
      if amount <= 0:
          return await ctx.send("❌ Amount must be greater than 0.")
-
+ 
      sender_balance = get_balance(sender.id)
-
+ 
      if sender_balance < amount:
-        return await ctx.send(
-            f"❌ You don’t have enough MoonShards.\n"
-            f"💰 Your balance: **{sender_balance}** 🌙"
-        )
-
-      # ✅ Transfer
-     receiver_balance = get_balance(member.id)
-
-     set_balance(sender.id, sender_balance - amount)
-     set_balance(member.id, receiver_balance + amount)
-
+         return await ctx.send(
+             f"❌ You don’t have enough MoonShards.\n"
+             f"💰 Your balance: **{sender_balance:,}** 🌙"
+         )
+ 
+     # ✅ ATOMIC TRANSFER (SAFE)
+     update_balance(sender.id, -amount)
+     update_balance(member.id, +amount)
+ 
+     # Get fresh balances (optional but nice)
+     new_sender_balance = get_balance(sender.id)
+     new_receiver_balance = get_balance(member.id)
+ 
      # ✅ Embed
      embed = discord.Embed(
-        title="🌙 MoonShards Transfer",
-        color=discord.Color.blurple()
-     )
-
+         title="🌙 MoonShards Transfer",
+         color=discord.Color.blurple()
+    ) 
+ 
      embed.add_field(
-        name="📤 Sender",
-        value=sender.mention,
-        inline=True
-     )
-
+         name="📤 Sender",
+         value=f"{sender.mention}\n💰 `{new_sender_balance:,}`",
+         inline=True
+    ) 
+ 
      embed.add_field(
-        name="📥 Receiver",
-        value=member.mention,
-        inline=True
-     )
-
+         name="📥 Receiver",
+         value=f"{member.mention}\n💰 `{new_receiver_balance:,}`",
+         inline=True
+    ) 
+ 
      embed.add_field(
-        name="💸 Amount",
-        value=f"**{amount}** MoonShards 🌙",
-        inline=False
-     )
-
+         name="💸 Amount",
+         value=f"**{amount:,} MoonShards** 🌙",
+         inline=False
+    ) 
+ 
      embed.set_thumbnail(url=sender.display_avatar.url)
      embed.set_footer(text="MoonLight Economy • Secure Transfer")
-
+ 
      await ctx.send(embed=embed)
-
+ 
     @commands.command(aliases=["spin"])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def sw(self, ctx, amount: int):
@@ -160,7 +161,7 @@ class Gambling(commands.Cog):
         result_text = f"💸 **-{change} {CURRENCY}**"
         color = discord.Color.red()
 
-     set_balance(user_id, new_balance)
+     update_balance(user_id, new_balance)
 
     # ---------- RESULT EMBED ----------
      result_embed = discord.Embed(
@@ -241,7 +242,7 @@ class Gambling(commands.Cog):
         color = discord.Color.red()
         result_line = f"💸 **-{loss} {CURRENCY}**"
 
-     set_balance(user_id, new_balance)
+     update_balance(user_id, new_balance)
 
     # ---------- RESULT EMBED ----------
      result_embed = discord.Embed(
@@ -328,7 +329,7 @@ class Gambling(commands.Cog):
             return
 
         new_balance: int = get_balance(user_id) + amount
-        set_balance(user_id, new_balance)
+        update_balance(user_id, new_balance)
 
         await ctx.send(
             f"💸 **Admin Grant**\n"
@@ -359,7 +360,7 @@ class Gambling(commands.Cog):
         reward: int = random.randint(5000, 15000)
         new_balance: int = get_balance(user_id) + reward
 
-        set_balance(user_id, new_balance)
+        update_balance(user_id, new_balance)
         db_set_daily(user_id, timestamp=now)
 
         await ctx.send(
@@ -471,7 +472,7 @@ class Gambling(commands.Cog):
             color = discord.Color.red()
             result_text = f"No matches.\n❌ **-{amount} {CURRENCY}**"
 
-        set_balance(user_id, new_balance)
+        update_balance(user_id, new_balance)
 
         # ---------- FINAL EMBED ----------
         result_embed = discord.Embed(
@@ -542,7 +543,7 @@ class Gambling(commands.Cog):
             new_balance = balance - amount
             result_text = f"💀 You **LOST {amount}**..."
 
-        set_balance(user_id, new_balance)
+        update_balance(user_id, new_balance)
 
         await msg.edit(
             content=f"🪙 **{landed}!**\n"
@@ -628,7 +629,7 @@ class Gambling(commands.Cog):
             value = hand_value(player)
 
             if value > 21:
-                set_balance(user.id, get_balance(user.id) - bet)
+                update_balance(user.id, get_balance(user.id) - bet)
                 del blackjack_games[user.id]
 
                 embed = discord.Embed(
@@ -657,14 +658,14 @@ class Gambling(commands.Cog):
             balance = get_balance(user.id)
 
             if d > 21 or p > d:
-                set_balance(user.id, balance + bet)
+                update_balance(user.id, balance + bet)
                 result = f"🎉 YOU WIN +{bet} {CURRENCY}"
                 color = discord.Color.green()
             elif d == p:
                 result = "😐 PUSH (tie)"
                 color = discord.Color.gold()
             else:
-                set_balance(user.id, balance - bet)
+                update_balance(user.id, balance - bet)
                 result = f"💀 YOU LOSE -{bet} {CURRENCY}"
                 color = discord.Color.red()
 
