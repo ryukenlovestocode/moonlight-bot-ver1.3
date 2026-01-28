@@ -80,7 +80,7 @@ class Gambling(commands.Cog):
      outcomes = [
         ("💀 You caught trash! x4 loss", -4),
         ("😬 A weak catch... x2 loss", -2),
-        ("🐟 Small fish! x1 loss", 1),
+        ("🐟 Small fish! no loss nor profit", 1),
         ("🐠 Nice catch! x2 profit", 2),
         ("🦈 BIG FISH! x3 profit", 3),
         ("🐋 LEGENDARY CATCH! x4 profit", 4),
