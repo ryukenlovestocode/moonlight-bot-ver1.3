@@ -49,6 +49,87 @@ class Gambling(commands.Cog):
     async def ping(self, ctx: commands.Context):
         await ctx.send("🏓 Pong! Bot is alive.")
 
+    @commands.command()
+    @commands.cooldown(1, 10, BucketType.user)
+    async def fish(self, ctx, amount: int):
+     user_id = ctx.author.id
+     balance = get_balance(user_id)
+
+     MAX_BET = 100_000
+
+     # ---------- VALIDATION ----------
+     if amount <= 0:
+        return await ctx.send("❌ Enter a positive amount.")
+     if amount > MAX_BET:
+        return await ctx.send("❌ Max bet for fishing is **100,000 MoonShards**.")
+     if amount > balance:
+        return await ctx.send(f"❌ You don’t have enough {CURRENCY}.")
+ 
+     # ---------- SUSPENSE ----------
+     start_embed = discord.Embed(
+        title="🎣 Fishing...",
+        description="Casting your line into the Moonlight waters 🌊",
+        color=discord.Color.blurple()
+     )
+     start_embed.set_footer(text="Will you catch treasure or trash?")
+     msg = await ctx.send(embed=start_embed)
+
+     await asyncio.sleep(2)
+
+     # ---------- OUTCOMES ----------
+     outcomes = [
+        ("💀 You caught trash!", -4),
+        ("😬 A weak catch...", -2),
+        ("🐟 Small fish!", 1),
+        ("🐠 Nice catch!", 2),
+        ("🦈 BIG FISH!", 3),
+        ("🐋 LEGENDARY CATCH!", 4),
+     ]
+
+     result_text, multiplier = random.choice(outcomes)
+
+     if multiplier > 0:
+        profit = amount * multiplier
+        new_balance = balance + profit
+        color = discord.Color.green()
+        result_line = f"🎉 **+{profit} {CURRENCY}**"
+     else:
+        loss = amount * abs(multiplier)
+        new_balance = balance - loss
+        color = discord.Color.red()
+        result_line = f"💸 **-{loss} {CURRENCY}**"
+
+     set_balance(user_id, new_balance)
+
+    # ---------- RESULT EMBED ----------
+     result_embed = discord.Embed(
+        title="🎣 Fishing Result",
+        description=result_text,
+        color=color
+     )
+
+     result_embed.add_field(
+        name="🎯 Bet",
+        value=f"`{amount} {CURRENCY}`",
+        inline=True
+     )
+
+     result_embed.add_field(
+        name="📊 Outcome",
+        value=result_line,
+        inline=True
+     )
+
+     result_embed.add_field(
+        name="💰 New Balance",
+        value=f"`{new_balance} {CURRENCY}`",
+        inline=False
+     )
+
+     result_embed.set_footer(text="Moonlight Economy • Fish responsibly 🌙")
+
+     await msg.edit(embed=result_embed)
+
     @commands.command(aliases=["bal", "networth"])
     async def balance(self, ctx, member: discord.Member = None):
         user = member or ctx.author
