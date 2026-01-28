@@ -13,22 +13,28 @@ FUN_FACTS = [
     "🌙 Luna is always watching. Always."
 ]
 
+RARE_MESSAGES = [
+    "👁️ Luna has been awake for too long.",
+    "🌑 Something stirs in the dark…",
+    "🌙 Luna is thinking about you.",
+]
+
 class AutoMessage(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.send_fun_fact.start()  # 🔥 start loop
-
-    def cog_unload(self):
-        self.send_fun_fact.cancel()
 
     @tasks.loop(minutes=30)
     async def send_fun_fact(self):
-        channel_id = 1463136856374906887  
+        channel_id = 1463136856374906887
         channel = self.bot.get_channel(channel_id)
-        if random.randint(1, 100) == 1:
-         message = "👁️ Luna has been awake for too long."
+
         if not channel:
             return
+
+        # 1% chance spooky message
+        if random.randint(1, 100) == 1:
+            content = random.choice(RARE_MESSAGES)
+            return await channel.send(content)
 
         embed = discord.Embed(
             title="🌙 Luna Says",
@@ -44,6 +50,11 @@ class AutoMessage(commands.Cog):
     @send_fun_fact.before_loop
     async def before_send(self):
         await self.bot.wait_until_ready()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        if not self.send_fun_fact.is_running():
+            self.send_fun_fact.start()
 
 async def setup(bot):
     await bot.add_cog(AutoMessage(bot))
