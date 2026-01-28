@@ -721,3 +721,6 @@ class Gambling(commands.Cog):
          )
  
          await reaction.message.edit(embed=embed)
+
+async def setup(bot):
+    await bot.add_cog(Gambling(bot))
