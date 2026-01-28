@@ -51,56 +51,6 @@ class Gambling(commands.Cog):
     async def ping(self, ctx: commands.Context):
         await ctx.send("🏓 Pong! I'm alive.")
 
-    @commands.command()
-    async def burncash(self, ctx, amount: int):
-     user_id = ctx.author.id
-     balance = get_balance(user_id)
-
-     if amount <= 0:
-         return await ctx.send("❌ You must burn a positive amount.")
-
-     if amount > balance:
-         return await ctx.send("💀 You don’t even have that much to burn.")
-
-     # OPTIONAL LIMIT
-     if amount > 250_000:
-        return await ctx.send("🔥 That’s too much fire. Max burn is **250,000 MoonShards**.")
-
-     new_balance = balance - amount
-     set_balance(user_id, new_balance)
-
-     embed = discord.Embed(
-         title="🔥 Cash Burned",
-         description=f"{ctx.author.mention} just burned **{amount:,} MoonShards**.",
-         color=discord.Color.red()
-     )
-
-     embed.add_field(
-         name="💀 Reason",
-         value=random.choice([
-            "Because they could.",
-            "For the thrill.",
-            "Emotional damage.",
-            "Financial self-harm.",
-            "Luna demanded it."
-         ]),
-         inline=False
-     )
-
-     embed.add_field(
-         name="💰 New Balance",
-         value=f"`{new_balance:,} MoonShards`",
-         inline=False
-     )
-
-     embed.set_image(
-         url="https://media.tenor.com/7z6zZ2vE2wYAAAAC/fire-anime.gif"
-     )
-
-     embed.set_footer(text="MoonLight • Some choices can’t be undone 🌙")
-
-     await ctx.send(embed=embed)
-
     @commands.command(name="pay", aliases=["transfer", "give"])
     async def pay(self, ctx, member: discord.Member, amount: int):
      sender = ctx.author
