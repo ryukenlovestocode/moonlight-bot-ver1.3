@@ -26,6 +26,7 @@ class Help(commands.Cog):
                 "`$d <amount> <1> <2>` – Dice roll\n"
                 "`$bj <amount>` – Blackjack\n"
                 "`$lb` – Leaderboard"
+                "'$fish <amount>' – Fishing\n"
             ),
             inline=False
         )
