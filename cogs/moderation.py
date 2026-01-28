@@ -193,7 +193,7 @@ class Moderation(commands.Cog):
         if ts > cutoff
      ]
 
-     await self.bot.process_commands(message)
+     
 
 
 # ---------------- STATS -----------------
