@@ -1,6 +1,13 @@
 import discord
 import os
 from discord.ext import commands
+import subprocess
+
+try:
+    subprocess.run(["ffmpeg", "-version"], check=True)
+    print("✅ FFMPEG FOUND")
+except Exception as e:
+    print("❌ FFMPEG NOT FOUND:", e)
 
 # ---------- INTENTS ----------
 intents = discord.Intents.default()

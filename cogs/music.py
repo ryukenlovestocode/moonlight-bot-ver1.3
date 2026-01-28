@@ -71,7 +71,11 @@ class Music(commands.Cog):
         url = info["url"]
         title = info.get("title", "Unknown")
 
-     source = discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS)
+     source = discord.FFmpegPCMAudio(
+              url,
+            executable="ffmpeg",
+             **FFMPEG_OPTIONS
+            )
 
      vc.stop()
      vc.play(source)
