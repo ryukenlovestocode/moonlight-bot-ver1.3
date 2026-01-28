@@ -53,7 +53,6 @@ async def setup_hook():
     await bot.load_extension("cogs.moderation")
     await bot.load_extension("cogs.welcomer")
     await bot.load_extension("cogs.help")
-    await bot.load_extension("cogs.clans")
     print("✅ Cogs loaded")
 
 # ---------- RUN ----------
