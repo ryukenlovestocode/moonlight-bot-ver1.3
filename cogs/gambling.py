@@ -78,12 +78,12 @@ class Gambling(commands.Cog):
 
      # ---------- OUTCOMES ----------
      outcomes = [
-        ("💀 You caught trash!", -4),
-        ("😬 A weak catch...", -2),
-        ("🐟 Small fish!", 1),
-        ("🐠 Nice catch!", 2),
-        ("🦈 BIG FISH!", 3),
-        ("🐋 LEGENDARY CATCH!", 4),
+        ("💀 You caught trash! x4 loss", -4),
+        ("😬 A weak catch... x2 loss", -2),
+        ("🐟 Small fish! x1 loss", 1),
+        ("🐠 Nice catch! x2 profit", 2),
+        ("🦈 BIG FISH! x3 profit", 3),
+        ("🐋 LEGENDARY CATCH! x4 profit", 4),
      ]
 
      result_text, multiplier = random.choice(outcomes)
