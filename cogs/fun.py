@@ -319,6 +319,80 @@ class Fun(commands.Cog):
 
      partner = ctx.guild.get_member(partner_id)
      await ctx.send(f"💍 {member.mention} is married to {partner.mention}")
+
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+     if message.author.bot:
+         return
+
+     content = message.content.lower()
+
+     # Ignore commands like $luna
+     if content.startswith("$"):
+         await self.bot.process_commands(message)
+         return
+
+     if "luna" in content:
+         from datetime import datetime
+         import random
+ 
+         hour = datetime.utcnow().hour
+
+         # 🌑 Rare creepy responses (1%)
+         creepy = [
+             "👁️ You weren’t supposed to say that.",
+             "🌑 Don’t call me like that.",
+             "👁️ I was already here.",
+             "🌙 I heard you before you spoke."
+         ]
+
+         # 😾 Annoyed responses
+         annoyed = [
+             "😾 Stop saying my name like that.",
+             "🙄 What now?",
+             "😐 I’m busy. Probably.",
+             "😑 Yes. Again."
+         ]
+
+         # 🌙 Normal Luna responses
+         normal = [
+             "🌙 …you called?",
+             "👀 I heard my name.",
+             "✨ Yes? I was watching.",
+             "😼 What do you want now?",
+             "🌓 You rang?",
+             "🌌 Hmm?",
+             "💫 Speak."
+         ]
+
+         # 💤 Late-night whispers
+         sleepy = [
+             "🌑 Don’t say my name at night.",
+             "🐾 …yes?",
+             "🌙 I’m half asleep. Make it quick.",
+             "👁️ It’s late."
+         ]
+
+         # Decide response type
+         roll = random.randint(1, 100)
+
+         if roll == 1:
+            response = random.choice(creepy)
+         elif roll <= 15:
+            response = random.choice(annoyed)
+         else:
+             if hour >= 22 or hour <= 4:
+                 response = random.choice(sleepy)
+             else:
+                 response = random.choice(normal)
+
+        # Anti-spam chance (respond only sometimes)
+         if random.randint(1, 3) == 1:
+             await message.channel.send(response)
+
+     # ⚠️ REQUIRED so commands still work
+     await self.bot.process_commands(message)
     
     
 async def setup(bot):
