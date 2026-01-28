@@ -15,6 +15,26 @@ CREATE TABLE IF NOT EXISTS users (
 """)
 conn.commit()
 
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS clans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE,
+    leader_id INTEGER,
+    balance INTEGER DEFAULT 0,
+    level INTEGER DEFAULT 1
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS clan_members (
+    user_id INTEGER UNIQUE,
+    clan_id INTEGER,
+    role TEXT
+)
+""")
+
+conn.commit()
+
 def get_balance(user_id: int) -> int:
     cursor.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
     row = cursor.fetchone()
