@@ -1,9 +1,10 @@
+import asyncio
 import discord
 from discord.ext import commands
 import random
 from datetime import datetime
 
-
+marriages = {}  
 
 class Fun(commands.Cog):
     def __init__(self, bot):
@@ -206,6 +207,95 @@ class Fun(commands.Cog):
      embed.set_footer(text="MoonLight • Love is risky 🌙")
 
      await ctx.send(embed=embed)
+
+
+    @commands.command()
+    async def marry(self, ctx, partner: discord.Member = None):
+     if partner is None:
+         return await ctx.send("💀 Marry who? Mention someone.")
+
+     if partner.bot:
+         return await ctx.send("🤖 You can’t marry a bot. Even Luna.")
+
+     if partner.id == ctx.author.id:
+         return await ctx.send("💀 You can’t marry yourself.")
+
+     if ctx.author.id in marriages:
+         return await ctx.send("💔 You’re already married.")
+
+     if partner.id in marriages:
+         return await ctx.send("💔 They’re already married.")
+
+     embed = discord.Embed(
+         title="💍 Marriage Proposal",
+         description=(
+             f"{partner.mention},\n\n"
+             f"💖 **{ctx.author.mention} wants to marry you!**\n\n"
+             "React with ❤️ to accept or ❌ to decline."
+         ),
+         color=discord.Color.pink()
+     )
+
+     embed.set_image(url="https://media.tenor.com/9p6nKxF4BzEAAAAC/anime-romance.gif")
+     embed.set_footer(text="MoonLight • Love is a commitment 🌙")
+
+     msg = await ctx.send(embed=embed)
+     await msg.add_reaction("❤️")
+     await msg.add_reaction("❌")
+
+     def check(reaction, user):
+         return (
+             user.id == partner.id
+             and reaction.message.id == msg.id
+             and str(reaction.emoji) in ["❤️", "❌"]
+         )
+
+     try:
+         reaction, _ = await self.bot.wait_for(
+             "reaction_add",
+             timeout=60,
+             check=check
+          )
+     except asyncio.TimeoutError:
+         return await ctx.send("⌛ Proposal expired. Love waited too long.")
+
+     if str(reaction.emoji) == "❤️":
+         marriages[ctx.author.id] = partner.id
+         marriages[partner.id] = ctx.author.id
+ 
+         await ctx.send(
+             f"💍 **CONGRATS!** {ctx.author.mention} and {partner.mention} are now married 💖"
+         )
+     else:
+         await ctx.send("💔 Proposal rejected. Pain.")
+
+    @commands.command()
+    async def divorce(self, ctx):
+     partner_id = marriages.get(ctx.author.id)
+  
+     if not partner_id:
+         return await ctx.send("💀 You’re not married.")
+
+     partner = ctx.guild.get_member(partner_id)
+
+     marriages.pop(ctx.author.id)
+     marriages.pop(partner_id, None)
+
+     await ctx.send(
+         f"💔 {ctx.author.mention} and {partner.mention if partner else 'their partner'} are now divorced."
+     )
+
+    @commands.command()
+    async def spouse(self, ctx, member: discord.Member = None):
+     member = member or ctx.author
+     partner_id = marriages.get(member.id)
+
+     if not partner_id:
+         return await ctx.send("💀 Not married.")
+
+     partner = ctx.guild.get_member(partner_id)
+     await ctx.send(f"💍 {member.mention} is married to {partner.mention}")
+    
     
 async def setup(bot):
     await bot.add_cog(Fun(bot))
