@@ -101,11 +101,55 @@ class Moderation(commands.Cog):
     # ---------------- WARN ----------------
     @commands.command()
     @commands.has_permissions(moderate_members=True)
-    async def warn(self, ctx, member: discord.Member, *, reason="No reason provided"):
-        await ctx.send(
-            f"⚠️ **{member.mention}** has been warned.\n📝 Reason: {reason}"
-        )
+    async def warn(self, ctx, member: discord.Member, *, reason: str = "No reason provided"):
+     # ❌ Prevent self-warn
+     if member == ctx.author:
+         return await ctx.send("❌ You can’t warn yourself, dumbo.")
 
+     # ❌ Prevent bot warn
+     if member.bot:
+         return await ctx.send("❌ You can’t warn bots.")
+ 
+     # 📢 Server embed
+     embed = discord.Embed(
+         title="⚠️ Member Warned",
+         color=discord.Color.orange()
+      )
+
+     embed.add_field(
+         name="👤 User",
+         value=member.mention,
+         inline=False
+     )
+ 
+     embed.add_field(
+         name="🛡 Moderator",
+         value=ctx.author.mention,
+          inline=False
+     )
+ 
+     embed.add_field(
+         name="📝 Reason",
+         value=reason,
+         inline=False
+     ) 
+
+     embed.set_thumbnail(url=member.display_avatar.url)
+     embed.set_footer(text="MoonLight Moderation 🌙")
+ 
+     await ctx.send(embed=embed)
+ 
+     # 📬 DM the user (safe)
+     try:
+        dm_embed = discord.Embed(
+            title="⚠️ You have been warned",
+            description=f"**Server:** {ctx.guild.name}\n**Reason:** {reason}",
+            color=discord.Color.orange()
+        )
+        dm_embed.set_footer(text="Please follow the server rules 🌙")
+        await member.send(embed=dm_embed)
+     except discord.Forbidden:
+        pass  # user has DMs closed
     #----------------SNIPE------------------
     @commands.Cog.listener()
     async def on_message_delete(self, message):
