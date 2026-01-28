@@ -151,9 +151,7 @@ class Fun(commands.Cog):
      await ctx.send(f"🔮 **Prophecy:** {random.choice(prophecies)}")
     
     @commands.command()
-    @commands.cooldown(1, 5, commands.BucketType.user)
     async def ship(self, ctx, user1: discord.Member = None, user2: discord.Member = None):
-    
      if user1 is None:
         return await ctx.send("❌ Ship who? Mention at least one user.")
 
@@ -161,7 +159,7 @@ class Fun(commands.Cog):
         user2 = ctx.author
 
      if user1.id == user2.id:
-        return await ctx.send("💀 You cannot ship someone with themselves.")
+        return await ctx.send("💀 You can’t ship someone with themselves.")
 
      percentage = random.randint(1, 100)
 
@@ -180,6 +178,12 @@ class Fun(commands.Cog):
      else:
         verdict = "💀 This ship sank."
 
+     HEART_IMAGES = [
+        "https://media.tenor.com/zGm5acSjHCIAAAAC/heart-glow.gif",
+        "https://media.tenor.com/7OZz6WmYkXgAAAAC/pixel-heart.gif",
+        "https://media.tenor.com/V9q8rY3fZCkAAAAC/heart-aesthetic.gif"
+     ]
+
      embed = discord.Embed(
         title="💞 Luna Ship Calculator",
         description=f"{user1.mention} ❤️ {user2.mention}",
@@ -196,19 +200,12 @@ class Fun(commands.Cog):
         name="🔮 Verdict",
         value=verdict,
         inline=False
-    )
+     )
 
-     embed.set_thumbnail(url=random.choice([
-         user1.display_avatar.url,
-        user2.display_avatar.url
-     ]))
-
-     embed.set_footer(text="MoonLight • Love is a risk 🌙")
+     embed.set_image(url=random.choice(HEART_IMAGES))
+     embed.set_footer(text="MoonLight • Love is risky 🌙")
 
      await ctx.send(embed=embed)
-
-    
-
     
 async def setup(bot):
     await bot.add_cog(Fun(bot))
