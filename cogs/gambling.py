@@ -11,6 +11,7 @@ from moonlight.database import (
     set_balance,
     get_last_daily,
     set_daily,
+    db_set_daily,
     get_top_balances,
 )
 

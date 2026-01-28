@@ -27,6 +27,18 @@ def get_balance(user_id: int) -> int:
         return START_BALANCE
     return row[0]
 
+def ensure_user(user_id: int):
+    cursor.execute(
+        "SELECT 1 FROM users WHERE user_id = ?",
+        (user_id,)
+    )
+    if cursor.fetchone() is None:
+        cursor.execute(
+            "INSERT INTO users (user_id, balance, last_daily) VALUES (?, ?, ?)",
+            (user_id, START_BALANCE, 0)
+        )
+        conn.commit()
+
 def set_balance(user_id: int, amount: int):
     cursor.execute(
         "UPDATE users SET balance = ? WHERE user_id = ?",
@@ -51,4 +63,13 @@ def set_daily(user_id: int, timestamp: int) -> None:
         "UPDATE users SET last_daily = ? WHERE user_id = ?",
         (timestamp, user_id)
     )
+
+def db_get_daily(user_id: int) -> int:
+    ensure_user(user_id)
+    cursor.execute(
+        "SELECT last_daily FROM users WHERE user_id = ?",
+        (user_id,)
+    )
+    row = cursor.fetchone()
+    return row[0] if row and row[0] is not None else 0
     conn.commit()
