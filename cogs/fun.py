@@ -12,7 +12,31 @@ class Fun(commands.Cog):
 
 
 
+    @commands.command()
+    async def meow(self, ctx):
+     from datetime import datetime
+     import random
 
+     # 😈 5% chance Luna gets MAD
+     if random.randint(1, 20) == 1:
+         return await ctx.send("😡 I am NOT a cat. Try again and I bite.")
+
+     hour = datetime.utcnow().hour
+
+     # 💤 Late-night tired Luna
+     if hour >= 22 or hour <= 4:
+         return await ctx.send("🐱 …meow. I’m too tired to argue.")
+
+     # 😭 Normal chaotic Luna
+     responses = [
+         "🐱 Meow!— wait… I didn’t mean to say that 😳 you idiot!!",
+         "🐾 Meow— NO. I refuse. You made me do that.",
+         "😾 M-meow?! Stop pressing buttons you don’t understand.",
+         "🐱 …Meow. Don’t look at me like that.",
+         "🐾 Meow!— I’m deleting my memory after this."
+     ]
+
+     await ctx.send(random.choice(responses))
 
 
     @commands.command()
