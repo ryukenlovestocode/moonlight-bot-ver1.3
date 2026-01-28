@@ -74,7 +74,7 @@ class Gambling(commands.Cog):
         color=discord.Color.blurple()
      )
      spinning_embed.set_image(
-        url="https://media.tenor.com/6K7Ew6N6cEAAAAAC/spinning-wheel.gif"
+        url="https://media1.tenor.com/m/7T24taTZIWQAAAAd/spinning.gif"
     )
 
      msg = await ctx.send(embed=spinning_embed)
